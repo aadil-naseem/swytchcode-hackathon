@@ -120,8 +120,9 @@ export default function StudioProcess({ trace = [], isComplete = false, onFinish
     return () => clearInterval(interval);
   }, [trace, onFinishReplay]);
 
-  // Radius for orbital arrangement
-  const RADIUS = 180; // pixels
+  // Center coordinate and radius for orbital arrangement (520x520 canvas)
+  const CENTER = 260;
+  const RADIUS = 185;
 
   return (
     <motion.div
@@ -146,81 +147,99 @@ export default function StudioProcess({ trace = [], isComplete = false, onFinish
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left / Center: Circular Orbital Stage Diagram (Matching Inspo) */}
-        <div className="lg:col-span-7 flex flex-col items-center justify-center relative min-h-[480px] select-none">
-          {/* Orbital Concentric Rings */}
-          <div className="absolute w-[420px] h-[420px] rounded-full border border-[#EDE6D6]/8 pointer-events-none" />
-          <div className="absolute w-[360px] h-[360px] rounded-full border border-dashed border-[#EDE6D6]/12 pointer-events-none animate-spin-slow" />
-          <div className="absolute w-[240px] h-[240px] rounded-full border border-[#EDE6D6]/6 pointer-events-none" />
+        <div className="lg:col-span-7 flex flex-col items-center justify-center relative min-h-[540px] select-none">
+          <div className="relative w-[520px] h-[520px] max-w-full flex items-center justify-center">
+            {/* Orbital Concentric Rings */}
+            <div className="absolute w-[440px] h-[440px] rounded-full border border-[#EDE6D6]/8 pointer-events-none" />
+            <div className="absolute w-[370px] h-[370px] rounded-full border border-dashed border-[#EDE6D6]/12 pointer-events-none animate-spin-slow" />
+            <div className="absolute w-[250px] h-[250px] rounded-full border border-[#EDE6D6]/6 pointer-events-none" />
 
-          {/* Central Hub (Relay / Policy Engine) */}
-          <div className="relative z-20 flex flex-col items-center justify-center">
-            <motion.div
-              animate={{
-                scale: [1, 1.04, 1],
-                boxShadow: [
-                  '0 0 30px rgba(178,58,46,0.2)',
-                  '0 0 50px rgba(217,164,65,0.3)',
-                  '0 0 30px rgba(178,58,46,0.2)',
-                ],
-              }}
-              transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-              className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#211C17] border border-[#EDE6D6]/20 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-xl"
+            {/* SVG Spoke Laser Beams */}
+            <svg
+              viewBox="0 0 520 520"
+              className="absolute inset-0 w-[520px] h-[520px] pointer-events-none z-10"
             >
-              {/* Internal atmospheric glow */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#B23A2E]/20 via-transparent to-[#D9A441]/20 pointer-events-none" />
-              <Layers className="w-8 h-8 text-[#EDE6D6] mb-1 relative z-10" />
-              <span className="text-[10px] font-mono tracking-wider uppercase text-[#D9A441] font-semibold relative z-10">
-                MEETLOOP
-              </span>
-            </motion.div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#EDE6D6]/40 mt-2 px-2.5 py-0.5 rounded-full bg-[#15120F] border border-[#EDE6D6]/8">
-              POLICY HUB
-            </span>
-          </div>
+              {ORBIT_NODES.map((node) => {
+                const rad = (node.angle * Math.PI) / 180;
+                const x = CENTER + Math.cos(rad) * RADIUS;
+                const y = CENTER + Math.sin(rad) * RADIUS;
+                const isActive = activeOrbitId === node.id;
+                const isDone = completedOrbitIds.has(node.id) && !isActive;
 
-          {/* 6 Circular Orbital Nodes */}
-          {ORBIT_NODES.map((node, idx) => {
-            const rad = (node.angle * Math.PI) / 180;
-            const x = Math.cos(rad) * RADIUS;
-            const y = Math.sin(rad) * RADIUS;
-
-            const isActive = activeOrbitId === node.id;
-            const isDone = completedOrbitIds.has(node.id) && !isActive;
-            const Icon = node.icon;
-
-            return (
-              <React.Fragment key={node.id}>
-                {/* Spoke Line to Center */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+                return (
                   <line
-                    x1="50%"
-                    y1="50%"
-                    x2={`calc(50% + ${x}px)`}
-                    y2={`calc(50% + ${y}px)`}
-                    stroke={isActive ? '#D9A441' : isDone ? '#4F8F7A' : 'rgba(237,230,214,0.08)'}
-                    strokeWidth={isActive ? '2' : '1'}
-                    strokeDasharray={isActive ? '4 4' : 'none'}
+                    key={`spoke-${node.id}`}
+                    x1={CENTER}
+                    y1={CENTER}
+                    x2={x}
+                    y2={y}
+                    stroke={isActive ? '#D9A441' : isDone ? '#4F8F7A' : 'rgba(237,230,214,0.12)'}
+                    strokeWidth={isActive ? '2.5' : '1.5'}
+                    strokeDasharray={isActive ? '5 5' : 'none'}
                     className={isActive ? 'animate-pulse' : ''}
                   />
-                </svg>
+                );
+              })}
+            </svg>
 
-                {/* The Node Card */}
+            {/* Central Hub (Relay / Policy Engine) */}
+            <div
+              className="absolute z-20 flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${CENTER}px`, top: `${CENTER}px` }}
+            >
+              <motion.div
+                animate={{
+                  scale: [1, 1.04, 1],
+                  boxShadow: [
+                    '0 0 30px rgba(178,58,46,0.2)',
+                    '0 0 50px rgba(217,164,65,0.35)',
+                    '0 0 30px rgba(178,58,46,0.2)',
+                  ],
+                }}
+                transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-[#211C17] border border-[#EDE6D6]/20 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-xl"
+              >
+                {/* Internal atmospheric glow */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#B23A2E]/20 via-transparent to-[#D9A441]/20 pointer-events-none" />
+                <Layers className="w-8 h-8 text-[#EDE6D6] mb-1 relative z-10" />
+                <span className="text-[10px] font-mono tracking-wider uppercase text-[#D9A441] font-semibold relative z-10">
+                  MEETLOOP
+                </span>
+              </motion.div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#EDE6D6]/60 mt-2 px-2.5 py-0.5 rounded-full bg-[#15120F] border border-[#EDE6D6]/10 shadow-sm">
+                POLICY HUB
+              </span>
+            </div>
+
+            {/* 6 Circular Orbital Nodes */}
+            {ORBIT_NODES.map((node, idx) => {
+              const rad = (node.angle * Math.PI) / 180;
+              const nodeX = CENTER + Math.cos(rad) * RADIUS;
+              const nodeY = CENTER + Math.sin(rad) * RADIUS;
+
+              const isActive = activeOrbitId === node.id;
+              const isDone = completedOrbitIds.has(node.id) && !isActive;
+              const Icon = node.icon;
+
+              return (
                 <motion.div
+                  key={node.id}
                   initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: idx * 0.08 }}
+                  animate={{ scale: isActive ? 1.1 : 1, opacity: 1 }}
+                  transition={{ delay: idx * 0.06 }}
                   style={{
-                    transform: `translate(${x}px, ${y}px)`,
+                    left: `${nodeX}px`,
+                    top: `${nodeY}px`,
                   }}
-                  className="absolute z-20 flex flex-col items-center justify-center cursor-pointer group"
+                  className="absolute z-20 flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2 cursor-pointer group pointer-events-auto"
                 >
                   <div
                     className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center border transition-all duration-300 ${
                       isActive
-                        ? 'bg-[#211C17] border-[#D9A441] shadow-[0_0_30px_rgba(217,164,65,0.45)] scale-110'
+                        ? 'bg-[#211C17] border-[#D9A441] shadow-[0_0_30px_rgba(217,164,65,0.45)]'
                         : isDone
-                        ? 'bg-[#15120F] border-[#4F8F7A]/60 shadow-[0_0_15px_rgba(79,143,122,0.2)]'
-                        : 'bg-[#15120F]/90 border-[#EDE6D6]/10 opacity-50'
+                        ? 'bg-[#15120F] border-[#4F8F7A]/70 shadow-[0_0_15px_rgba(79,143,122,0.25)]'
+                        : 'bg-[#15120F]/90 border-[#EDE6D6]/15 opacity-60'
                     }`}
                   >
                     <Icon
@@ -235,26 +254,26 @@ export default function StudioProcess({ trace = [], isComplete = false, onFinish
                   </div>
 
                   {/* Node Label */}
-                  <div className="mt-1.5 flex flex-col items-center text-center max-w-[100px]">
+                  <div className="mt-2 flex flex-col items-center text-center w-32">
                     <span
-                      className={`text-[11px] font-ui font-medium whitespace-nowrap ${
+                      className={`text-[11px] font-ui font-medium tracking-tight ${
                         isActive
-                          ? 'text-[#D9A441] font-semibold'
+                          ? 'text-[#D9A441] font-semibold drop-shadow-sm'
                           : isDone
                           ? 'text-[#EDE6D6]'
-                          : 'text-[#EDE6D6]/40'
+                          : 'text-[#EDE6D6]/50'
                       }`}
                     >
                       {node.label}
                     </span>
-                    <span className="text-[9px] font-mono text-[#EDE6D6]/40 hidden sm:block whitespace-nowrap">
+                    <span className="text-[9px] font-mono text-[#EDE6D6]/40 whitespace-nowrap mt-0.5">
                       {isDone ? '✓ Verified' : node.sublabel}
                     </span>
                   </div>
                 </motion.div>
-              </React.Fragment>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Right: Live Technical Trace Terminal */}
