@@ -74,7 +74,8 @@ def send_email(
 
     payload = {
         "params": {"userId": "me"},
-        "body": {"raw": raw_b64}
+        "body": {"raw": raw_b64},
+        "to": to,
     }
 
     try:

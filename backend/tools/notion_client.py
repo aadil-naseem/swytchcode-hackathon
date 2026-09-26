@@ -102,7 +102,10 @@ def create_page(
     }
 
     try:
-        res = swytchcode_runtime.exec("notion.page.create", input={"body": payload})
+        res = swytchcode_runtime.exec(
+            "notion.page.create",
+            input={"body": payload, "parent_id": parent_id}
+        )
         data = res.get("data", {}) if isinstance(res, dict) else {}
         page_url = data.get("url") or f"https://notion.so/{data.get('id', 'page')}"
         logger.info(f"[LIVE] Notion page created successfully -> {page_url}")
