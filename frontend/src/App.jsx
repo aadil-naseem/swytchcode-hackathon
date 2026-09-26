@@ -172,7 +172,7 @@ Meeting ended without a clear launch date for staging.`,
             {studioState === 'process' && (
               <StudioProcess
                 trace={agentTrace}
-                isComplete={!isProcessing}
+                isProcessing={isProcessing}
                 onFinishReplay={handleFinishReplay}
               />
             )}

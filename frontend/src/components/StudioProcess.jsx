@@ -69,7 +69,7 @@ const ORBIT_NODES = [
   },
 ];
 
-export default function StudioProcess({ trace = [], isComplete = false, onFinishReplay }) {
+export default function StudioProcess({ trace = [], isProcessing = false, onFinishReplay }) {
   const [activeOrbitId, setActiveOrbitId] = useState('ingestion');
   const [completedOrbitIds, setCompletedOrbitIds] = useState(new Set());
   const [logs, setLogs] = useState([
@@ -82,6 +82,45 @@ export default function StudioProcess({ trace = [], isComplete = false, onFinish
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
+  // Live in-flight progression while waiting for LLM & tool executions
+  useEffect(() => {
+    if (trace && trace.length > 0) return;
+
+    const stages = ['ingestion', 'cross_analysis', 'stuck_topics', 'notion_hub', 'gmail_digest', 'slack_pulse'];
+    let stageIdx = 0;
+
+    const inFlightInterval = setInterval(() => {
+      if (stageIdx < stages.length) {
+        const stage = stages[stageIdx];
+        setActiveOrbitId(stage);
+        setCompletedOrbitIds((prev) => new Set(prev).add(stage));
+        
+        const stageLabels = {
+          ingestion: 'Ingesting meeting transcript and tokenizing agenda items...',
+          cross_analysis: 'Running multi-meeting cross-reasoning via OpenRouter LLM...',
+          stuck_topics: 'Identifying recurring unowned tasks and commitment load...',
+          notion_hub: 'Checking Swytchcode policy for Notion health report creation...',
+          gmail_digest: 'Verifying manager recipient domain with Swytchcode guard...',
+          slack_pulse: 'Formatting and validating team channel Slack pulse...',
+        };
+
+        setLogs((prev) => [
+          ...prev,
+          {
+            text: `[${stage}] ${stageLabels[stage]}`,
+            time: new Date().toLocaleTimeString().split(' ')[0],
+          },
+        ]);
+        stageIdx++;
+      } else {
+        clearInterval(inFlightInterval);
+      }
+    }, 2200);
+
+    return () => clearInterval(inFlightInterval);
+  }, [trace]);
+
+  // Replay live returned trace once completed
   useEffect(() => {
     if (!trace || trace.length === 0) return;
 
@@ -113,9 +152,9 @@ export default function StudioProcess({ trace = [], isComplete = false, onFinish
         clearInterval(interval);
         setTimeout(() => {
           if (onFinishReplay) onFinishReplay();
-        }, 1200);
+        }, 900);
       }
-    }, 750);
+    }, 600);
 
     return () => clearInterval(interval);
   }, [trace, onFinishReplay]);
@@ -139,9 +178,17 @@ export default function StudioProcess({ trace = [], isComplete = false, onFinish
             Auditing Cross-Meeting Intelligence...
           </h2>
         </div>
-        <div className="flex items-center gap-2 text-xs font-mono text-[#D9A441] bg-[#211C17] px-3.5 py-1.5 rounded-full border border-[#D9A441]/30 shadow-[0_0_15px_rgba(217,164,65,0.15)]">
-          <Shield className="w-3.5 h-3.5 text-[#4F8F7A]" />
-          <span>Swytchcode Policy Engine: In-Flight Governance</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onFinishReplay}
+            className="px-3.5 py-1.5 rounded-full bg-[#211C17] border border-[#EDE6D6]/20 text-xs font-mono text-[#D9A441] hover:bg-[#D9A441] hover:text-[#15120F] transition-all"
+          >
+            View Verdict & Exhibits →
+          </button>
+          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#D9A441] bg-[#211C17] px-3.5 py-1.5 rounded-full border border-[#D9A441]/30 shadow-[0_0_15px_rgba(217,164,65,0.15)]">
+            <Shield className="w-3.5 h-3.5 text-[#4F8F7A]" />
+            <span>Swytchcode Policy: In-Flight Governance</span>
+          </div>
         </div>
       </div>
 
