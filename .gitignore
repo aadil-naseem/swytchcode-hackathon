@@ -2,17 +2,38 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.log
 
-# Virtual environment
+# Virtual Environments
 venv/
 .venv/
+backend/venv/
 
-# Environment variables / secrets
+# Environment Variables & Secrets
 .env
+backend/.env
+frontend/.env.local
+frontend/.env.*.local
+!*.env.example
 
-# IDE
+# Auth Tokens & Credentials
+token.json
+credentials.json
+notion-test.json
+.swytchcode/auth/
+.swytchcode/workspace.json
+
+# Node & Frontend Build
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+dist/
+build/
+.npm/
+
+# IDE & OS
 .vscode/
-
-# OS
+.idea/
 .DS_Store
 Thumbs.db

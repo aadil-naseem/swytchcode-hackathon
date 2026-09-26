@@ -1,0 +1,21 @@
+Title: Friday Sprint 14 Retrospective & Planning
+Date: 2026-09-25
+Participants: Sarah (Product Manager), Arjun (Tech Lead), Priya (Backend Engineer), David (Design)
+
+[00:01:00] Sarah: Time for our sprint retro. We have 4 agenda items to resolve today.
+[00:02:15] Sarah: Topic 1: Design system token migration.
+[00:04:00] David: All components are ready in Figma. Can engineering adopt Tailwind v4?
+[00:05:10] Priya: Yes, we tested the compiler. Decision: We are migrating to Tailwind tokens in Sprint 15.
+[00:06:30] Sarah: Topic 2: Database migration downtime window.
+[00:08:00] Priya: We propose Sunday 2:00 AM UTC.
+[00:08:45] Arjun: Approved. Decision: Sunday 2:00 AM UTC maintenance window locked.
+[00:10:00] Sarah: Topic 3: CI/CD test runner timeout.
+[00:11:15] Priya: I can split the unit test matrix to run in parallel.
+[00:12:00] Sarah: Decision: Priya will configure parallel Github Actions jobs this sprint.
+[00:13:00] Sarah: Topic 4: Staging environment access.
+[00:14:00] David: Granted to the QA team today. Decision: QA onboarding complete.
+[00:15:00] Sarah: Outstanding work team! 4 out of 4 agenda topics resolved cleanly today.
+[00:15:20] Action items:
+- David: Publish the Figma tokens library link.
+- Priya: Set up parallel test runner config.
+[00:16:00] Sarah: Sprint retro adjourned.

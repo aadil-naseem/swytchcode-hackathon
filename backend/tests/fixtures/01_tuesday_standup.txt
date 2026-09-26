@@ -1,0 +1,17 @@
+Title: Tuesday Engineering & Product Standup
+Date: 2026-09-22
+Participants: Arjun (Tech Lead), Sarah (Product Manager), Priya (Backend Engineer), David (Design)
+
+[00:01:00] Sarah: Good morning everyone. Let's do a quick round of updates.
+[00:02:15] Priya: Backend API endpoints for user auth are merged. Starting on Notion webhook handlers today.
+[00:04:30] David: New dashboard mockups are ready for feedback in Figma.
+[00:06:10] Arjun: I've been looking at our Tier Structure. We urgently need to decide our Pricing Strategy before next month's launch. Are we doing seat-based or consumption-based?
+[00:07:45] Sarah: Good question, sales wants seat-based, but marketing is asking for usage-based. We didn't reach a decision last week either.
+[00:10:20] Priya: From an engineering standpoint, consumption-based metering takes 3 weeks of infrastructure work.
+[00:12:00] Sarah: Let's table the decision for now because we need more data.
+[00:13:30] Sarah: Action items from today:
+- Arjun: Research competitor tier models and compile a comparison table.
+- Arjun: Draft a preliminary pricing document comparing seat vs usage pricing.
+- Arjun: Set up a call with sales leadership to gather their objections.
+[00:14:45] Arjun: Okay, added those to my plate.
+[00:15:00] Sarah: Meeting adjourned.

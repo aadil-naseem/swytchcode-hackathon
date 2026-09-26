@@ -1,0 +1,16 @@
+Title: Thursday Executive Alignment Review
+Date: 2026-09-24
+Participants: Sarah (Product Manager), Arjun (Tech Lead), Elena (VP Product), Michael (VP Sales)
+
+[00:00:45] Elena: Welcome team. Let's look at the launch blockers. Arjun, present the numbers.
+[00:02:10] Arjun: Here is the spreadsheet. Seat-based pricing gives predictable ARR ($120k projected Q4). Usage-based gives higher expansion potential but slower ramp-up.
+[00:05:30] Michael: Sales reps strongly prefer seat-based because enterprise procurement understands per-seat licenses.
+[00:07:45] Elena: But AI companies are moving toward token/credit consumption. What if our users spike GPU costs?
+[00:10:00] Arjun: Can we do seat-based with fair-use token caps? That protects our margins.
+[00:12:15] Elena: That's interesting, but let's review customer interview feedback first before locking it in. We shouldn't rush the final call today.
+[00:14:00] Sarah: So the decision on Pricing Strategy remains open pending survey results.
+[00:14:30] Elena: Action items:
+- Arjun: Design and send a 3-question pricing survey to our 50 beta design partners.
+- Arjun: Revise the executive pricing deck with survey results by Monday morning.
+- Sarah: Collate qualitative feedback from enterprise sales pipeline.
+[00:15:40] Arjun: Acknowledged. I will get the survey out today.

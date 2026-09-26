@@ -1,0 +1,59 @@
+{
+  "defaults": {
+    "on_violation": "fail",
+    "evaluation": "pre_execution"
+  },
+  "policies": [
+    {
+      "id": "notion-writes-approved-workspace-only",
+      "target": [
+        "notion.page.create",
+        "notion.pages.create"
+      ],
+      "when": {
+        "field": "parent_id",
+        "operator": "not_in",
+        "value": [
+          "3e65f73d75b08023aaf9d4581719af01",
+          "3e65f73d-75b0-8023-aaf9-d4581719af01"
+        ]
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "MeetLoop may only create pages inside the approved workspace parent page."
+      }
+    },
+    {
+      "id": "slack-pulse-approved-channel-only",
+      "target": [
+        "slack.chat.postmessage.create",
+        "slack.chat.postMessage"
+      ],
+      "when": {
+        "field": "channel",
+        "operator": "!=",
+        "value": "C0C4DT5SW5R"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "MeetLoop may only post the weekly pulse to the configured team channel."
+      }
+    },
+    {
+      "id": "manager-digest-domain-check",
+      "target": [
+        "gmail.user.send.create1",
+        "gmail.messages.send"
+      ],
+      "when": {
+        "field": "to",
+        "operator": "not_contains",
+        "value": "@"
+      },
+      "action": {
+        "type": "POLICY_BLOCKED",
+        "message": "Manager digests may only be sent to a valid recipient address on an authorized domain."
+      }
+    }
+  ]
+}

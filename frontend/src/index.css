@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* =========================================================
+   MeetLoop Design System & Tokens ("The Investigation Room")
+   ========================================================= */
+
+@theme {
+  --color-ink: #15120f;
+  --color-panel: #211c17;
+  --color-paper: #ede6d6;
+  --color-thread: #b23a2e;
+  --color-signal: #d9a441;
+  --color-resolved: #4f8f7a;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+:root {
+  /* Color Palette (Section 5 Blueprint) */
+  --color-ink: #15120f;       /* Base background: warm near-black */
+  --color-panel: #211c17;     /* Card/panel surface on top of ink */
+  --color-panel-border: rgba(237, 230, 214, 0.08);
+  --color-paper: #ede6d6;     /* Primary case file text & light card accent */
+  --color-paper-muted: rgba(237, 230, 214, 0.65);
+  --color-paper-faint: rgba(237, 230, 214, 0.25);
+  
+  --color-thread: #b23a2e;    /* Primary red accent: connections, active links, CTA */
+  --color-thread-glow: rgba(178, 58, 46, 0.35);
+  
+  --color-signal: #d9a441;    /* In-progress / active node glow */
+  --color-signal-glow: rgba(217, 164, 65, 0.3);
+  
+  --color-resolved: #4f8f7a;  /* Done / success state */
+  --color-resolved-glow: rgba(79, 143, 122, 0.3);
+
+  /* Typography */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Transitions */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #15120f;
+  color: #ede6d6;
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Custom Investigation Room Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #15120f;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(237, 230, 214, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(237, 230, 214, 0.3);
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 16s linear infinite;
+}

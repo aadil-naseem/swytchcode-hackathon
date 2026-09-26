@@ -1,0 +1,15 @@
+Title: Wednesday Product Strategy Sync
+Date: 2026-09-23
+Participants: Sarah (Product Manager), Arjun (Tech Lead), Priya (Backend Engineer)
+
+[00:01:10] Sarah: We have one main agenda topic today: finalize our core feature packaging and resolve the Pricing Strategy blocker.
+[00:02:40] Arjun: I compiled the competitor breakdown as requested. Competitor A charges $30/seat/month, whereas Competitor B uses credit-based usage.
+[00:06:15] Priya: If we do usage-based, we'll need Stripe metering webhooks which will delay the backend roadmap.
+[00:08:50] Sarah: Hmm, but our seed investors suggested a hybrid model. I'm hesitant to commit to pure seat-based without VP sign-off.
+[00:11:30] Arjun: So do we make a decision today? We are blocked on landing page copy and billing contracts.
+[00:13:00] Sarah: Let's not decide yet until we model both financial outcomes.
+[00:14:10] Sarah: Action items:
+- Arjun: Build a financial model spreadsheet projecting revenue under both $25/seat and $0.05/credit models.
+- Arjun: Schedule an alignment sync with the VP of Product for Thursday.
+- Priya: Spike the Stripe webhook complexity (estimated 2 days).
+[00:15:20] Arjun: Got it, I will prepare the financial model tonight.
