@@ -9,7 +9,7 @@
 
 ## 🚀 Live Demo
 
-- **Live Application**: [https://meetloop.vercel.app](https://meetloop.vercel.app) *(or local preview at `http://localhost:5173`)*
+- **Live Application**: [https://meetloop.vercel.app](https://swytchcode-hackathon.vercel.app/) *(or local preview at `http://localhost:5173`)*
 - **Interactive Swagger API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
