@@ -24,13 +24,13 @@ export default function Particles({
     const ctx = canvas.getContext('2d');
     let animationFrameId;
 
-    let width = (canvas.width = canvas.parentElement.offsetWidth);
-    let height = (canvas.height = canvas.parentElement.offsetHeight);
+    let width = (canvas.width = canvas.parentElement?.offsetWidth || window.innerWidth || 800);
+    let height = (canvas.height = canvas.parentElement?.offsetHeight || window.innerHeight || 600);
 
     const handleResize = () => {
-      if (!canvas || !canvas.parentElement) return;
-      width = canvas.width = canvas.parentElement.offsetWidth;
-      height = canvas.height = canvas.parentElement.offsetHeight;
+      if (!canvas) return;
+      width = canvas.width = canvas.parentElement?.offsetWidth || window.innerWidth || 800;
+      height = canvas.height = canvas.parentElement?.offsetHeight || window.innerHeight || 600;
     };
 
     window.addEventListener('resize', handleResize);
