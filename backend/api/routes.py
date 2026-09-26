@@ -13,7 +13,10 @@ from typing import Any, Dict, List, Optional, Union
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
-from backend.agent.graph import clearroom_agent
+try:
+    from backend.agent.graph import clearroom_agent
+except ImportError:
+    from agent.graph import clearroom_agent
 
 router = APIRouter()
 
