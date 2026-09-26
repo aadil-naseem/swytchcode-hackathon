@@ -31,12 +31,23 @@ def _load_stuck_topic_prompt() -> str:
 def _synthesize_stuck_topic_fallback(candidate: Dict[str, Any]) -> Dict[str, Any]:
     topic = candidate.get("topic", "Stuck Topic")
     meeting_count = candidate.get("meeting_count", 1)
-    meeting_dates = candidate.get("dates", ["2026-09-28"])
-    meeting_titles = candidate.get("meeting_titles", ["PulseBoard Weekly Product Sync"])
+    meeting_dates = candidate.get("dates", [])
+    meeting_titles = candidate.get("meeting_titles", [])
 
     summary = candidate.get("summary_of_discussion") or candidate.get("synthesized_views") or (
-        "Frontend is blocked waiting on Backend API; Backend is waiting on ML schema; "
-        "ML schema is waiting on Design event names; Migration ownership is unassigned."
+        f"'{topic}' was discussed across {meeting_count} meeting(s) without a clear resolution or decision."
+    )
+
+    blocking_reason = candidate.get("blocking_reason") or (
+        f"No clear owner or decision has been assigned for '{topic}' across the meetings analyzed."
+    )
+
+    suggested_owner = candidate.get("suggested_owner") or (
+        meeting_titles[0].split()[0] if meeting_titles else "Meeting Organizer"
+    )
+
+    suggested_next_step = candidate.get("suggested_next_step") or (
+        f"Schedule a focused 15-minute decision sync on '{topic}', assign a clear owner, and set a deadline."
     )
 
     return {
@@ -44,13 +55,9 @@ def _synthesize_stuck_topic_fallback(candidate: Dict[str, Any]) -> Dict[str, Any
         "occurrences": meeting_count,
         "meeting_dates": meeting_dates,
         "meeting_titles": meeting_titles,
-        "blocking_reason": candidate.get(
-            "blocking_reason"
-        ) or "Circular dependency between Design event names, ML schema change, and Backend profile API with no release coordinator.",
-        "suggested_owner": candidate.get("suggested_owner") or "Maya",
-        "suggested_next_step": candidate.get(
-            "suggested_next_step"
-        ) or "Assign explicit release coordinator, lock UX event names today, and set firm staging deadline for Thursday.",
+        "blocking_reason": blocking_reason,
+        "suggested_owner": suggested_owner,
+        "suggested_next_step": suggested_next_step,
         "synthesized_views": summary,
         "evidence": candidate.get("evidence", []),
         "urgency_level": "High",

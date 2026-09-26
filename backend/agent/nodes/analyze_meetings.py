@@ -46,24 +46,74 @@ def _extract_meeting_metadata(raw_text: str, default_index: int) -> Dict[str, An
     lines = raw_text.strip().splitlines()
     body_lines = []
 
+    # Check if first non-empty line is "MEETING REPORT" style header
+    first_nonempty = next((l.strip() for l in lines if l.strip()), "")
+    if re.match(r"(?i)^meeting\s+report\s*$", first_nonempty):
+        title = "Meeting Report"
+
+    in_attendees_block = False
+
     for line in lines:
         stripped = line.strip()
-        title_match = re.match(r"(?i)^(?:title|meeting|subject)\s*:\s*(.+)$", stripped)
+        if not stripped:
+            in_attendees_block = False
+            body_lines.append(line)
+            continue
+
+        title_match = re.match(r"(?i)^(?:title|subject)\s*:\s*(.+)$", stripped)
+        meeting_title_match = re.match(r"(?i)^meeting\s*:\s*(.+)$", stripped)
         date_match = re.match(r"(?i)^(?:date|time)\s*:\s*(.+)$", stripped)
         participants_match = re.match(r"(?i)^(?:participants|attendees|present)\s*:\s*(.+)$", stripped)
+        attendees_header_match = re.match(r"(?i)^(?:participants|attendees|present)\s*[:\-–]?\s*$", stripped)
+        agenda_match = re.match(r"(?i)^agenda\s*:\s*(.+)$", stripped)
 
         if title_match:
             title = title_match.group(1).strip()
+            in_attendees_block = False
+        elif meeting_title_match:
+            title = meeting_title_match.group(1).strip()
+            in_attendees_block = False
         elif date_match:
             date = date_match.group(1).strip()
+            in_attendees_block = False
         elif participants_match:
+            # Attendees listed inline: "Attendees: Alice, Bob, Carol"
             parts = participants_match.group(1).split(",")
-            cleaned_parts = []
             for p in parts:
                 p_clean = re.sub(r"\s*\(.*?\)", "", p).strip()
                 if p_clean:
-                    cleaned_parts.append(p_clean)
-            participants = cleaned_parts
+                    participants.append(p_clean)
+            in_attendees_block = True  # might continue with bullets on next lines
+        elif attendees_header_match:
+            # Attendees block starts on next lines
+            in_attendees_block = True
+        elif agenda_match and title == f"Meeting {default_index}":
+            # Use agenda as title if no better title found
+            title = agenda_match.group(1).strip()[:60]
+            in_attendees_block = False
+            body_lines.append(line)
+        elif in_attendees_block:
+            # Handle bullet points: "• Name", "- Name", "* Name", "Name Lastname"
+            bullet_match = re.match(r"^[•\-\*\–]\s*(.+)$", stripped)
+            if bullet_match:
+                name = re.sub(r"\s*\(.*?\)", "", bullet_match.group(1)).strip()
+                if name and len(name.split()) <= 4:
+                    participants.append(name)
+            elif re.match(r"^[A-Z]", stripped) and "," in stripped:
+                # Comma-separated list
+                for p in stripped.split(","):
+                    p_clean = re.sub(r"\s*\(.*?\)", "", p).strip()
+                    if p_clean:
+                        participants.append(p_clean)
+                in_attendees_block = False
+            elif re.match(r"(?i)^(conducted by|platform|time|date|agenda|meeting summary)", stripped):
+                in_attendees_block = False
+                body_lines.append(line)
+            else:
+                # Single name on a line
+                name = re.sub(r"\s*\(.*?\)", "", stripped).strip()
+                if name and len(name.split()) <= 4 and re.match(r"^[A-Za-z]", name):
+                    participants.append(name)
         else:
             body_lines.append(line)
 
@@ -86,6 +136,7 @@ def _extract_meeting_metadata(raw_text: str, default_index: int) -> Dict[str, An
         "clean_transcript": clean_content,
         "raw_transcript": raw_text.strip(),
     }
+
 
 
 def _split_text_into_chunks(text: str) -> List[str]:
@@ -145,10 +196,151 @@ def _extract_json_from_llm_response(text: str) -> Dict[str, Any]:
     return json.loads(text)
 
 
+def _extract_attendees_from_meetings(parsed_meetings: List[Dict[str, Any]]) -> List[str]:
+    """Dynamically extract attendee names from parsed meeting data."""
+    all_participants = []
+    for m in parsed_meetings:
+        for p in m.get("participants", []):
+            if p and p not in all_participants:
+                all_participants.append(p)
+    return all_participants
+
+
+def _extract_action_items_from_text(text: str) -> List[str]:
+    """Heuristically find action items in meeting text."""
+    action_patterns = [
+        r"(?i)(?:will|shall|should|must|to)\s+([A-Za-z].{5,60}?)(?:\.|,|\n|$)",
+        r"(?i)(?:action item|next step|follow.?up|todo|task)s?\s*:\s*([A-Za-z].{5,80}?)(?:\.|,|\n|$)",
+        r"(?i)([A-Z][a-z]+)\s+(?:will|to)\s+([a-z].{5,60}?)(?:\.|,|\n|$)",
+    ]
+    items = []
+    for pattern in action_patterns:
+        matches = re.findall(pattern, text)
+        for m in matches[:5]:
+            item_text = m if isinstance(m, str) else " ".join(m)
+            item_text = item_text.strip()
+            if len(item_text) > 8 and item_text not in items:
+                items.append(item_text)
+    return items[:10]
+
+
 def _get_deterministic_fixture_analysis(parsed_meetings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Dynamically analyze the actual transcript content instead of returning hardcoded fixture data.
+    This ensures the fallback is always relevant to the provided transcript.
+    """
+    full_text = " ".join(m.get("clean_transcript", "") for m in parsed_meetings)
+    full_text_lower = full_text.lower()
+
+    # Gather real attendees from the parsed meetings
+    all_attendees = _extract_attendees_from_meetings(parsed_meetings)
+
+    # Compute action items dynamically from the actual text
+    action_items = _extract_action_items_from_text(full_text)
+
+    # Compute a simple workload distribution across known attendees
+    counts_by_person: Dict[str, int] = {}
+    for attendee in all_attendees:
+        name_lower = attendee.lower()
+        # Count mentions of the attendee name in transcript as a proxy for involvement/ownership
+        count = full_text_lower.count(name_lower)
+        counts_by_person[attendee] = min(count // 3, 5)  # normalize
+
+    overloaded_people = []
+    total_tasks = sum(counts_by_person.values()) or 1
+    for name, cnt in sorted(counts_by_person.items(), key=lambda x: x[1], reverse=True):
+        if cnt > 0 and (cnt / total_tasks) > 0.35:
+            overloaded_people.append({
+                "name": name,
+                "action_item_count": cnt,
+                "percentage_of_all_tasks": round((cnt / total_tasks) * 100, 1),
+                "assessment": f"{name} appears most frequently in the transcript and may be carrying a disproportionate share of the discussion and action items.",
+                "action_items": action_items[:3],
+            })
+
+    # Build a generic stuck topic from the real meeting content
+    meeting_titles = [m.get("title", f"Meeting {m.get('index', 1)}") for m in parsed_meetings]
+    meeting_dates  = [m.get("date",  "") for m in parsed_meetings]
+
+    # Try to find a topic from the transcript title or content
+    first_meeting = parsed_meetings[0] if parsed_meetings else {}
+    main_topic = first_meeting.get("title", "Meeting Agenda")
+    top_attendee = all_attendees[0] if all_attendees else "Unassigned"
+
+    recurring_topics = [
+        {
+            "topic": main_topic,
+            "meeting_count": len(parsed_meetings),
+            "meeting_titles": meeting_titles,
+            "dates": meeting_dates,
+            "is_stuck": True,
+            "status": "unresolved",
+            "summary_of_discussion": (
+                f"This meeting covered '{main_topic}'. "
+                f"Across {len(parsed_meetings)} meeting(s) with {len(all_attendees)} attendee(s), "
+                "some items may require follow-up to reach closure."
+            ),
+            "blocking_reason": "Full AI synthesis unavailable — deterministic analysis indicates follow-up required to close open items from this meeting.",
+            "suggested_owner": top_attendee,
+            "suggested_next_step": "Schedule a brief follow-up sync to assign owners to any open action items and set firm deadlines.",
+        }
+    ]
+
+    return {
+        "summary": {
+            "total_meetings_analyzed": len(parsed_meetings),
+            "total_topics_discussed": max(len(parsed_meetings), 1),
+            "total_decisions_made": 0,
+            "decision_velocity_score": "Pending full AI analysis",
+            "executive_headline": (
+                f"MeetLoop analyzed {len(parsed_meetings)} meeting(s) with {len(all_attendees)} attendee(s). "
+                f"Primary meeting: '{main_topic}'. Follow-up review recommended."
+            ),
+        },
+        "recurring_topics": recurring_topics,
+        "decision_velocity": {
+            "total_topics_opened": len(parsed_meetings),
+            "total_decisions_finalized": 0,
+            "overall_velocity_rate": 0.5,
+            "status": "pending_review",
+            "insights": "LLM analysis unavailable. Deterministic fallback used. Core meeting data captured.",
+        },
+        "commitment_load": {
+            "counts_by_person": counts_by_person,
+            "overloaded_people": overloaded_people,
+            "balanced_people": [n for n in list(counts_by_person.keys()) if not any(o["name"] == n for o in overloaded_people)],
+        },
+        "agenda_outcome_gaps": [
+            {
+                "meeting_index": m.get("index", i + 1),
+                "meeting_title": m.get("title", f"Meeting {i+1}"),
+                "date": m.get("date", ""),
+                "topics_opened": 1,
+                "topics_resolved": 0,
+                "resolution_rate": 0.0,
+                "unresolved_topics": [m.get("title", "Agenda items")],
+                "gap_notes": "AI synthesis unavailable. Review transcript for unresolved items.",
+            }
+            for i, m in enumerate(parsed_meetings)
+        ],
+        "meeting_necessity_scores": {
+            m.get("title", f"Meeting {i+1}"): {
+                "necessity_score": 7,
+                "recommendation": "Keep as Live Sync",
+                "reasoning": "Meeting importance could not be fully scored without AI analysis.",
+            }
+            for i, m in enumerate(parsed_meetings)
+        },
+    }
+
+
+# NOTE: Legacy hardcoded fixture data has been removed. The dynamic analysis above
+# now always operates on the real transcript content provided by the user.
+
+def _pulseboard_hardcoded_check(parsed_meetings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Legacy: kept for reference only — no longer called."""
     full_text = " ".join(m.get("clean_transcript", "") for m in parsed_meetings).lower()
 
-    # Check if this is the synthetic PulseBoard meeting
     if "pulseboard" in full_text or "onboarding redesign" in full_text or "daniel" in full_text or "sofia" in full_text:
         return {
             "summary": {

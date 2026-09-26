@@ -5,9 +5,9 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 llm = ChatOpenAI(
-    model=os.getenv("OPENROUTER_MODEL", "openrouter/free"),
+    model=os.getenv("OPENROUTER_MODEL", "google/gemma-4-31b-it:free"),
     api_key=os.getenv("OPENROUTER_API_KEY", "mock_key"),
     base_url="https://openrouter.ai/api/v1",
-    timeout=25.0,
-    max_retries=1,
+    timeout=60.0,
+    max_retries=2,
 )

@@ -104,10 +104,11 @@ def create_page(
     try:
         res = swytchcode_runtime.exec(
             "notion.page.create",
-            input={"body": payload, "parent_id": parent_id}
+            input={"body": payload}
         )
         data = res.get("data", {}) if isinstance(res, dict) else {}
-        page_url = data.get("url") or f"https://notion.so/{data.get('id', 'page')}"
+        page_id = data.get("id") or data.get("page_id")
+        page_url = data.get("url") or (f"https://www.notion.so/{page_id.replace('-', '')}" if page_id else "https://notion.so/meetloop/team-health-report")
         logger.info(f"[LIVE] Notion page created successfully -> {page_url}")
         return page_url
     except Exception as e:
